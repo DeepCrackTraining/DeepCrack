@@ -10,9 +10,9 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 
-def test(test_data_path='data/test.txt',
+def test(test_data_path='data/val.txt',
          save_path='deepcrack_results/',
-         pretrained_model='checkpoints/DeepCrack_CT260_FT1.pth', ):
+         pretrained_model='checkpoints/DeepCrack_CT260_FT1/checkpoints/DeepCrack_CT260_FT1_DeepCrack_CT260_FT1_epoch(19)_0000025_2024-06-20-15-10-16.pth', ):
     if not os.path.exists(save_path):
         os.mkdir(save_path)
 
