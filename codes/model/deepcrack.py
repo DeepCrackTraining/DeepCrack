@@ -1,6 +1,7 @@
 from torch import nn
 import torch
 import torch.nn.functional as F
+from torch.cuda.amp import autocast
 
 
 def Conv3X3(in_, out):
@@ -129,6 +130,7 @@ class DeepCrack(nn.Module):
 
         self.final = Conv3X3(5,1)
 
+    @autocast()
     def forward(self,inputs):
 
         # encoder part

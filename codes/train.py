@@ -9,6 +9,7 @@ import torch
 import os
 import cv2
 import sys
+from torch.cuda.amp import autocast as autocast
 
 os.environ["CUDA_VISIBLE_DEVICES"] = cfg.gpu_id
 
@@ -56,49 +57,50 @@ def main():
     try:
 
         for epoch in range(1, cfg.epoch):
-            trainer.vis.log('Start Epoch %d ...' % epoch, 'train info')
-            model.train()
+            with autocast():
+                trainer.vis.log('Start Epoch %d ...' % epoch, 'train info')
+                model.train()
 
-            # ---------------------  training ------------------- #
-            bar = tqdm(enumerate(train_loader), total=len(train_loader))
-            bar.set_description('Epoch %d --- Training --- :' % epoch)
-            for idx, (img, lab) in bar:
-                if device == torch.device("cuda"):
-                    data, target = img.type(torch.cuda.FloatTensor).to(device), lab.type(torch.cuda.FloatTensor).to(device)
-                else:
-                    data, target = img.type(torch.FloatTensor).to(device), lab.type(torch.FloatTensor).to(device)
-                pred = trainer.train_op(data, target)
-                if idx % cfg.vis_train_loss_every == 0:
-                    trainer.vis.log(trainer.log_loss, 'train_loss')
-                    trainer.vis.plot_many({
-                        'train_total_loss': trainer.log_loss['total_loss'],
-                        'train_output_loss': trainer.log_loss['output_loss'],
-                        'train_fuse5_loss': trainer.log_loss['fuse5_loss'],
-                        'train_fuse4_loss': trainer.log_loss['fuse4_loss'],
-                        'train_fuse3_loss': trainer.log_loss['fuse3_loss'],
-                        'train_fuse2_loss': trainer.log_loss['fuse2_loss'],
-                        'train_fuse1_loss': trainer.log_loss['fuse1_loss'],
-                    })
+                # ---------------------  training ------------------- #
+                bar = tqdm(enumerate(train_loader), total=len(train_loader))
+                bar.set_description('Epoch %d --- Training --- :' % epoch)
+                for idx, (img, lab) in bar:
+                    if device == torch.device("cuda"):
+                        data, target = img.type(torch.cuda.FloatTensor).to(device), lab.type(torch.cuda.FloatTensor).to(device)
+                    else:
+                        data, target = img.type(torch.FloatTensor).to(device), lab.type(torch.FloatTensor).to(device)
+                    pred = trainer.train_op(data, target)
+                    if idx % cfg.vis_train_loss_every == 0:
+                        trainer.vis.log(trainer.log_loss, 'train_loss')
+                        trainer.vis.plot_many({
+                            'train_total_loss': trainer.log_loss['total_loss'],
+                            'train_output_loss': trainer.log_loss['output_loss'],
+                            'train_fuse5_loss': trainer.log_loss['fuse5_loss'],
+                            'train_fuse4_loss': trainer.log_loss['fuse4_loss'],
+                            'train_fuse3_loss': trainer.log_loss['fuse3_loss'],
+                            'train_fuse2_loss': trainer.log_loss['fuse2_loss'],
+                            'train_fuse1_loss': trainer.log_loss['fuse1_loss'],
+                        })
 
-                if idx % cfg.vis_train_acc_every == 0:
-                    trainer.acc_op(pred[0], target)
-                    trainer.vis.log(trainer.log_acc, 'train_acc')
-                    trainer.vis.plot_many({
-                        'train_mask_acc': trainer.log_acc['mask_acc'],
-                        'train_mask_pos_acc': trainer.log_acc['mask_pos_acc'],
-                        'train_mask_neg_acc': trainer.log_acc['mask_neg_acc'],
-                    })
-                if idx % cfg.vis_train_img_every == 0:
-                    trainer.vis.img_many({
-                        'train_img': data.cpu(),
-                        'train_output': torch.sigmoid(pred[0].contiguous().cpu()),
-                        'train_lab': target.unsqueeze(1).cpu(),
-                        'train_fuse5': torch.sigmoid(pred[1].contiguous().cpu()),
-                        'train_fuse4': torch.sigmoid(pred[2].contiguous().cpu()),
-                        'train_fuse3': torch.sigmoid(pred[3].contiguous().cpu()),
-                        'train_fuse2': torch.sigmoid(pred[4].contiguous().cpu()),
-                        'train_fuse1': torch.sigmoid(pred[5].contiguous().cpu()),
-                    })
+                    if idx % cfg.vis_train_acc_every == 0:
+                        trainer.acc_op(pred[0], target)
+                        trainer.vis.log(trainer.log_acc, 'train_acc')
+                        trainer.vis.plot_many({
+                            'train_mask_acc': trainer.log_acc['mask_acc'],
+                            'train_mask_pos_acc': trainer.log_acc['mask_pos_acc'],
+                            'train_mask_neg_acc': trainer.log_acc['mask_neg_acc'],
+                        })
+                    if idx % cfg.vis_train_img_every == 0:
+                        trainer.vis.img_many({
+                            'train_img': data.cpu(),
+                            'train_output': torch.sigmoid(pred[0].contiguous().cpu()),
+                            'train_lab': target.unsqueeze(1).cpu(),
+                            'train_fuse5': torch.sigmoid(pred[1].contiguous().cpu()),
+                            'train_fuse4': torch.sigmoid(pred[2].contiguous().cpu()),
+                            'train_fuse3': torch.sigmoid(pred[3].contiguous().cpu()),
+                            'train_fuse2': torch.sigmoid(pred[4].contiguous().cpu()),
+                            'train_fuse1': torch.sigmoid(pred[5].contiguous().cpu()),
+                        })
 
                 if idx % cfg.val_every == 0:
                     trainer.vis.log('Start Val %d ....' % idx, 'train info')
