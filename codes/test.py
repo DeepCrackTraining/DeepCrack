@@ -10,7 +10,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 
-def test(test_data_path='data/test_example.txt',
+def test(test_data_path='data/test.txt',
          save_path='deepcrack_results/',
          pretrained_model='checkpoints/DeepCrack_CT260_FT1.pth', ):
     if not os.path.exists(save_path):
@@ -27,8 +27,8 @@ def test(test_data_path='data/test_example.txt',
 
     # -------------------- build trainer --------------------- #
 
-    device = torch.device("cuda")
-    num_gpu = torch.cuda.device_count()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    num_gpu = torch.cuda.device_count() if torch.cuda.is_available() else 1
 
     model = DeepCrack()
 
@@ -43,8 +43,11 @@ def test(test_data_path='data/test_example.txt',
 
     with torch.no_grad():
         for names, (img, lab) in tqdm(zip(test_list, test_loader)):
-            test_data, test_target = img.type(torch.cuda.FloatTensor).to(device), lab.type(torch.cuda.FloatTensor).to(
-                device)
+            if torch.cuda.is_available():
+                test_data, test_target = img.type(torch.cuda.FloatTensor).to(device), lab.type(torch.cuda.FloatTensor).to(
+                    device)
+            else:
+                test_data, test_target = img.type(torch.FloatTensor).to(device), lab.type(torch.FloatTensor).to(device)
             test_pred = trainer.val_op(test_data, test_target)
             test_pred = torch.sigmoid(test_pred[0].cpu().squeeze())
             save_pred = torch.zeros((512 * 2, 512))

@@ -10,8 +10,9 @@ class Config:
     setproctitle.setproctitle("%s" % name)
 
     # path
-    train_data_path = 'data/train_example.txt'
-    val_data_path = 'data/test_example.txt'
+    train_data_path = 'data/train.txt'
+    val_data_path = 'data/val.txt'
+    test_data_path = 'data/val.txt'
     checkpoint_path = 'checkpoints'
     log_path = 'log'
     saver_path = os.path.join(checkpoint_path, name)

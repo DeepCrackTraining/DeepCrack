@@ -131,7 +131,9 @@ class Checkpointer(object):
         """
         if isinstance(obj, str) and obj.split('.')[-1] == 'pth':  # 正常加载
             self._say("Loaded checkpoint: {0}".format(obj))
-            obj = torch.load(obj)
+            # obj = torch.load(obj)
+            # adaptively load the model (cuda or cpu)
+            obj = torch.load(obj, map_location=None if torch.cuda.is_available() else 'cpu')
         elif self.counter > 0 and obj is None:
             loaded = torch.load(self.filename, *args, **kwargs)
             if preprocess is not None:

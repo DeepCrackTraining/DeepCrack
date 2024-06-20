@@ -1,0 +1,9 @@
+__pycache__
+inputs
+outputs
+deepcrack_results
+
+checkpoints/*.pth
+data/CRKWH100
+data/Stone331
+data/*.txt

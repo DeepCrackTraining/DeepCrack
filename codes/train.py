@@ -34,8 +34,9 @@ def main():
 
     # -------------------- build trainer --------------------- #
 
-    device = torch.device("cuda")
-    num_gpu = torch.cuda.device_count()
+    # check device and choose
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    num_gpu = torch.cuda.device_count() if torch.cuda.is_available() else 1
 
     model = DeepCrack()
     model = torch.nn.DataParallel(model, device_ids=range(num_gpu))
@@ -62,7 +63,10 @@ def main():
             bar = tqdm(enumerate(train_loader), total=len(train_loader))
             bar.set_description('Epoch %d --- Training --- :' % epoch)
             for idx, (img, lab) in bar:
-                data, target = img.type(torch.cuda.FloatTensor).to(device), lab.type(torch.cuda.FloatTensor).to(device)
+                if device == torch.device("cuda"):
+                    data, target = img.type(torch.cuda.FloatTensor).to(device), lab.type(torch.cuda.FloatTensor).to(device)
+                else:
+                    data, target = img.type(torch.FloatTensor).to(device), lab.type(torch.FloatTensor).to(device)
                 pred = trainer.train_op(data, target)
                 if idx % cfg.vis_train_loss_every == 0:
                     trainer.vis.log(trainer.log_loss, 'train_loss')

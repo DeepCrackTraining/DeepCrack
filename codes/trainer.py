@@ -27,8 +27,12 @@ class DeepCrackTrainer(nn.Module):
 
         # -------------------- Loss --------------------- #
 
-        self.mask_loss = nn.BCEWithLogitsLoss(reduction='mean',
-                                              pos_weight=torch.cuda.FloatTensor([cfg.pos_pixel_weight]))
+        if torch.cuda.is_available():
+            self.mask_loss = nn.BCEWithLogitsLoss(reduction='mean',
+                                                  pos_weight=torch.cuda.FloatTensor([cfg.pos_pixel_weight]))
+        else:
+            self.mask_loss = nn.BCEWithLogitsLoss(reduction='mean',
+                                                  pos_weight=torch.FloatTensor([cfg.pos_pixel_weight]))
 
         self.log_loss = {}
         self.log_acc = {}
