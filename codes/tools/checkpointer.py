@@ -110,6 +110,11 @@ class Checkpointer(object):
                 os.remove(old_filename)
             except:
                 pass
+        
+        # create folder if not exist
+        folder = os.path.dirname(new_filename)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
 
         torch.save(self._get_state(obj), new_filename, *args, **kwargs)
         torch.save((self.counter, new_filename), self.chkp)

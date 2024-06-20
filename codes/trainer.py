@@ -102,9 +102,9 @@ class DeepCrackTrainer(nn.Module):
 
         mask_acc = pred_mask.eq(mask.view_as(pred_mask)).sum().item() / mask.numel()
         mask_pos_acc = pred_mask[mask > 0].eq(mask[mask > 0].view_as(pred_mask[mask > 0])).sum().item() / mask[
-            mask > 0].numel()
+            mask > 0].numel() if mask[mask > 0].numel() != 0 else 0
         mask_neg_acc = pred_mask[mask < 1].eq(mask[mask < 1].view_as(pred_mask[mask < 1])).sum().item() / mask[
-            mask < 1].numel()
+            mask < 1].numel() if mask[mask < 1].numel() != 0 else 0
 
         self.log_acc = {
             'mask_acc': mask_acc,
